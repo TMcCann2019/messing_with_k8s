@@ -1,0 +1,29 @@
+replicaCount:
+  frontend: 4
+  backend: 2
+  db: 2
+
+image:
+  frontend:
+    repository: messing-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  backend:
+    repository: messing-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  db:
+    repository: messing-db
+    tag: latest
+    pullPolicy: IfNotPresent
+
+service:
+  frontend:
+    type: LoadBalancer
+    port: 80
+  backend:
+    type: ClusterIP
+    port: 8081
+  db:
+    type: ClusterIP
+    port: 5432
