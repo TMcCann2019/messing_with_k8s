@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+  namespace: messing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: db
+          image: messing-db:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              value: messing
+            - name: POSTGRES_USER
+              value: messing
+            - name: POSTGRES_PASSWORD
+              value: messing
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+      vloumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: messing-data-pvc

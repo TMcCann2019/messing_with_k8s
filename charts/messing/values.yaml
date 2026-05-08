@@ -27,3 +27,9 @@ service:
   db:
     type: ClusterIP
     port: 5432
+
+db:
+  name: messing
+  user: messing
+  password: messing
+  dataStorage: 1Gi

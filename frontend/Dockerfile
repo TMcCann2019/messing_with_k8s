@@ -1,14 +1,7 @@
-FROM node:20
+FROM nginx:alpine
 
-WORKDIR /app
+COPY index.html /usr/share/nginx/html/
+COPY app.js /usr/share/nginx/html/
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-COPY frontend/package.json .
-RUN npm install
-
-COPY frontend .
-
-RUN npm run build
-
-EXPOSE 5173
-
-CMD ["npm", "run", "preview", "--", "--host"]
+EXPOSE 80

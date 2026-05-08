@@ -1,47 +1,70 @@
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from config import Config
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import psycopg2
+import os
 
-app = Flask(__name__)
-app.config.from_object(Config)
+app = FastAPI()
 
-CORS(app)
+# Allow frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-db = SQLAlchemy(app)
+DB_HOST = os.getenv("DB_HOST", "postgres")
+DB_NAME = os.getenv("DB_NAME", "appdb")
+DB_USER = os.getenv("DB_USER", "appuser")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
 
-from models import Product
-
-@app.route("/health")
-def health():
-    return {"status": "ok"}
-
-@app.route("/products", methods=["GET"])
-def get_products():
-    products = Product.query.all()
-    return jsonify([
-        {
-            "id": p.id,
-            "name": p.name,
-            "price": p.price,
-            "image": p.image,
-            "description": p.description
-        }
-        for p in products
-    ])
-
-@app.route("/products", methods=["POST"])
-def create_product():
-    data = request.json
-
-    product = Product(
-        name=data["name"],
-        price=data["price"],
-        image=data.get("image"),
-        description=data.get("description")
+def get_connection():
+    return psycopg2.connect(
+        host=DB_HOST,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
     )
 
-    db.session.add(product)
-    db.session.commit()
+@app.get("/")
+def root():
+    return {"message": "API is running"}
 
-    return {"message": "created"}, 201
+@app.get("/users")
+def get_users():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, name, email FROM users")
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    users = []
+    for row in rows:
+        users.append({
+            "id": row[0],
+            "name": row[1],
+            "email": row[2]
+        })
+
+    return users
+
+@app.post("/users")
+def create_user(user: dict):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "INSERT INTO users (name, email) VALUES (%s, %s)",
+        (user["name"], user["email"])
+    )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return {"status": "created"}

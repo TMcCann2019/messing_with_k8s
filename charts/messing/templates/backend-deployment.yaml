@@ -4,7 +4,7 @@ metadata:
   name: backend
   namespace: messing
 spec:
-  replicas: {{.Values.replicaCount.backend}}
+  replicas: 2
   selector:
     matchLabels:
       app: backend
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: {{.Values.image.backend.repository}}:{{.Values.image.backend.tag}}
-          imagePullPolicy: {{.Values.image.backend.pullPolicy}}
+          image: messing-backend:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
